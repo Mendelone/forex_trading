@@ -461,6 +461,8 @@ namespace QuantConnect.Lean.Engine
                 {
                     foreach (var update in timeSlice.ConsolidatorUpdateData)
                     {
+                        var dataTimeZone = update.Target.DataTimeZone;
+                        var exchangeTimeZone = update.Target.ExchangeTimeZone;
                         var resolutionTimeSpan = update.Target.Resolution.ToTimeSpan();
                         var consolidators = update.Target.Consolidators;
                         foreach (var consolidator in consolidators)
@@ -470,12 +472,8 @@ namespace QuantConnect.Lean.Engine
                                 // Filter out data with resolution higher than the data subscription resolution.
                                 // This is needed to avoid feeding in higher resolution data, typically fill-forward bars.
                                 // It also prevents volume-based indicators or consolidators summing up volume to generate
-                                // invalid values.
-                                var algorithmTimeSpan = resolutionTimeSpan == TimeSpan.FromTicks(0)
-                                    ? TimeSpan.FromTicks(0)
-                                    : TimeSpan.FromSeconds(1);
-                                if (update.Target.Resolution == Resolution.Tick ||
-                                    algorithm.UtcTime.RoundDown(algorithmTimeSpan) == dataPoint.EndTime.RoundUp(resolutionTimeSpan).ConvertToUtc(update.Target.ExchangeTimeZone))
+                                var roundedEndTime = dataPoint.EndTime.RoundUpInTimeZone(resolutionTimeSpan, exchangeTimeZone, dataTimeZone);
+                                if (dataPoint.EndTime == roundedEndTime)
                                 {
                                     consolidator.Update(dataPoint);
                                 }

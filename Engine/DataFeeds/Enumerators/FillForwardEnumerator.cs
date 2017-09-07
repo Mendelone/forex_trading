@@ -17,6 +17,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using NodaTime;
 using QuantConnect.Data;
 using QuantConnect.Data.Market;
 using QuantConnect.Logging;
@@ -36,6 +37,7 @@ namespace QuantConnect.Lean.Engine.DataFeeds.Enumerators
         private bool _isFillingForward;
 
         private readonly TimeSpan _dataResolution;
+        private readonly DateTimeZone _dataTimeZone;
         private readonly bool _isExtendedMarketHours;
         private readonly DateTime _subscriptionEndTime;
         private readonly IEnumerator<BaseData> _enumerator;
@@ -57,18 +59,22 @@ namespace QuantConnect.Lean.Engine.DataFeeds.Enumerators
         /// <param name="isExtendedMarketHours">True to use the exchange's extended market hours, false to use the regular market hours</param>
         /// <param name="subscriptionEndTime">The end time of the subscrition, once passing this date the enumerator will stop</param>
         /// <param name="dataResolution">The source enumerator's data resolution</param>
+        /// <param name="dataTimeZone">The time zone of the underlying source data. This is used for rounding calculations and
+        /// is NOT the time zone on the BaseData instances (unless of course data time zone equals the exchange time zone)</param>
         public FillForwardEnumerator(IEnumerator<BaseData> enumerator,
             SecurityExchange exchange,
             IReadOnlyRef<TimeSpan> fillForwardResolution,
             bool isExtendedMarketHours,
             DateTime subscriptionEndTime,
-            TimeSpan dataResolution
+            TimeSpan dataResolution,
+            DateTimeZone dataTimeZone
             )
         {
             _subscriptionEndTime = subscriptionEndTime;
             Exchange = exchange;
             _enumerator = enumerator;
             _dataResolution = dataResolution;
+            _dataTimeZone = dataTimeZone;
             _fillForwardResolution = fillForwardResolution;
             _isExtendedMarketHours = isExtendedMarketHours;
         }
@@ -268,7 +274,7 @@ namespace QuantConnect.Lean.Engine.DataFeeds.Enumerators
             {
                 // if next is still in the future then we need to emit a fill forward for market open
                 fillForward = previous.Clone(true);
-                fillForward.Time = (nextFillForwardTime - _dataResolution).RoundDown(fillForwardResolution);
+                fillForward.Time = (nextFillForwardTime - _dataResolution).RoundDownInTimeZone(fillForwardResolution, _dataTimeZone, Exchange.TimeZone);
                 fillForward.EndTime = fillForward.Time + _dataResolution;
                 return true;
             }
