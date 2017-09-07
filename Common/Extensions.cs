@@ -485,6 +485,21 @@ namespace QuantConnect
         }
 
         /// <summary>
+        /// Rounds the specified date time in the specified time zone
+        /// </summary>
+        /// <param name="dateTime">Date time to be rounded</param>
+        /// <param name="roundingInterval">Timespan rounding period</param>
+        /// <param name="sourceTimeZone">Time zone of the date time</param>
+        /// <param name="roundingTimeZone">Time zone in which the rounding is performed</param>
+        /// <returns>The rounded date time in the source time zone</returns>
+        public static DateTime RoundDownInTimeZone(this DateTime dateTime, TimeSpan roundingInterval, DateTimeZone sourceTimeZone, DateTimeZone roundingTimeZone)
+        {
+            var dateTimeInRoundingTimeZone = dateTime.ConvertTo(sourceTimeZone, roundingTimeZone);
+            var roundedDateTimeInRoundingTimeZone = dateTimeInRoundingTimeZone.RoundDown(roundingInterval);
+            return roundedDateTimeInRoundingTimeZone.ConvertTo(roundingTimeZone, sourceTimeZone);
+        }
+
+        /// <summary>
         /// Extension method to round a datetime down by a timespan interval until it's
         /// within the specified exchange's open hours. This works by first rounding down
         /// the specified time using the interval, then producing a bar between that
@@ -513,11 +528,26 @@ namespace QuantConnect
         /// Extension method to round a datetime to the nearest unit timespan.
         /// </summary>
         /// <param name="datetime">Datetime object we're rounding.</param>
-        /// <param name="roundingInterval">Timespan rounding period.s</param>
+        /// <param name="roundingInterval">Timespan rounding period.</param>
         /// <returns>Rounded datetime</returns>
         public static DateTime Round(this DateTime datetime, TimeSpan roundingInterval)
         {
             return new DateTime((datetime - DateTime.MinValue).Round(roundingInterval).Ticks);
+        }
+
+        /// <summary>
+        /// Rounds the specified date time in the specified time zone
+        /// </summary>
+        /// <param name="dateTime">Date time to be rounded</param>
+        /// <param name="roundingInterval">Timespan rounding period</param>
+        /// <param name="sourceTimeZone">Time zone of the date time</param>
+        /// <param name="roundingTimeZone">Time zone in which the rounding is performed</param>
+        /// <returns>The rounded date time in the souce time zone</returns>
+        public static DateTime RoundInTimeZone(this DateTime dateTime, TimeSpan roundingInterval, DateTimeZone sourceTimeZone, DateTimeZone roundingTimeZone)
+        {
+            var dateTimeInRoundingTimeZone = dateTime.ConvertTo(sourceTimeZone, roundingTimeZone);
+            var roundedDateTimeInRoundingTimeZone = dateTimeInRoundingTimeZone.Round(roundingInterval);
+            return roundedDateTimeInRoundingTimeZone.ConvertTo(roundingTimeZone, sourceTimeZone);
         }
 
         /// <summary>
@@ -534,6 +564,21 @@ namespace QuantConnect
                 return time;
             }
             return new DateTime(((time.Ticks + d.Ticks - 1) / d.Ticks) * d.Ticks);
+        }
+
+        /// <summary>
+        /// Rounds the specified date time in the specified time zone
+        /// </summary>
+        /// <param name="dateTime">Date time to be rounded</param>
+        /// <param name="roundingInterval">Timespan rounding period</param>
+        /// <param name="sourceTimeZone">Time zone of the date time</param>
+        /// <param name="roundingTimeZone">Time zone in which the rounding is performed</param>
+        /// <returns>The rounded date time in the source time zone</returns>
+        public static DateTime RoundUpInTimeZone(this DateTime dateTime, TimeSpan roundingInterval, DateTimeZone sourceTimeZone, DateTimeZone roundingTimeZone)
+        {
+            var dateTimeInRoundingTimeZone = dateTime.ConvertTo(sourceTimeZone, roundingTimeZone);
+            var roundedDateTimeInRoundingTimeZone = dateTimeInRoundingTimeZone.RoundUp(roundingInterval);
+            return roundedDateTimeInRoundingTimeZone.ConvertTo(roundingTimeZone, sourceTimeZone);
         }
 
         /// <summary>
